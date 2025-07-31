@@ -1,20 +1,25 @@
 const mongoose = require('mongoose');
+require('dotenv').config(); // Ensure environment variables are loaded
 
-function DbConnection() {
+async function DbConnection() {
     const DB_URL = process.env.MONGO_URI;
 
-    mongoose.connect(DB_URL, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    })
+    if (!DB_URL) {
+        console.error("❌ MONGO_URI is not defined in .env file.");
+        process.exit(1);
+    }
 
-    const db = mongoose.connection;
+    try {
+        await mongoose.connect(DB_URL, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
 
-    db.on("error", console.error.bind(console, "Connection Error"))
-    db.once("open", function(){
-        console.log("DB Connected...")
-    })
-
+        console.log("✅ MongoDB connected successfully.");
+    } catch (error) {
+        console.error("❌ MongoDB connection error:", error.message);
+        process.exit(1); // Stop the app if DB not connected
+    }
 }
 
 module.exports = DbConnection;
